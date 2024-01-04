@@ -5,11 +5,32 @@ const {
   createLineItem,
   updateLineItem,
   deleteLineItem,
-  updateOrder
+  updateOrder,
+  createProduct,
 } = require('./db');
 
 const express = require('express');
 const app = express.Router();
+
+app.post('/products', async (req, res, next) => {
+  try {
+    // Validate the request body
+    const { name, price, quantity, description } = req.body;
+    if (!name || !price || !quantity) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    // Create the product
+    const product = await createProduct(req.body);
+
+    // Send a success response
+    res.status(201).send(product);
+  } catch (error) {
+    // Handle errors
+    console.error('Error creating product:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
 
 app.get('/products', async(req, res, next)=> {
   try {

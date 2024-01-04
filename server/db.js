@@ -26,11 +26,11 @@ const fetchProducts = async()=> {
 
 const createProduct = async(product)=> {
   const SQL = `
-    INSERT INTO products (id, name)
-    VALUES($1, $2)
+    INSERT INTO products (id, name, price, quantity, description)
+    VALUES($1, $2, $3, $4, $5)
     RETURNING *
   `;
-  const response = await client.query(SQL, [ uuidv4(), product.name]);
+  const response = await client.query(SQL, [ uuidv4(), product.name, product.price, product.quantity, product.description]);
   return response.rows[0];
 };
 
@@ -55,20 +55,21 @@ const ensureCart = async(lineItem)=> {
     throw Error("An order which has been placed can not be changed");
   }
 };
-const updateLineItem = async(lineItem)=> {
+const updateLineItem = async(lineItem) => {
   await ensureCart(lineItem);
-  SQL = `
+  const SQL = `
     UPDATE line_items
     SET quantity = $1
     WHERE id = $2
     RETURNING *
   `;
-  if(lineItem.quantity <= 0){
+  if (lineItem.quantity <= 0) {
     throw Error('a line item quantity must be greater than 0');
   }
   const response = await client.query(SQL, [lineItem.quantity, lineItem.id]);
   return response.rows[0];
 };
+
 
 const createLineItem = async(lineItem)=> {
   await ensureCart(lineItem);
@@ -123,7 +124,10 @@ const seed = async()=> {
     CREATE TABLE products(
       id UUID PRIMARY KEY,
       created_at TIMESTAMP DEFAULT now(),
-      name VARCHAR(100) UNIQUE NOT NULL
+      name VARCHAR(100) UNIQUE NOT NULL,
+      price INTEGER NOT NULL,
+      quantity INTEGER NOT NULL,
+      description TEXT 
     );
 
     CREATE TABLE orders(
@@ -144,10 +148,10 @@ const seed = async()=> {
   `;
   await client.query(SQL);
   const [foo, bar, bazz, quq] = await Promise.all([
-    createProduct({ name: 'foo' }),
-    createProduct({ name: 'bar' }),
-    createProduct({ name: 'bazz' }),
-    createProduct({ name: 'quq' }),
+    createProduct({ name: 'foo', price: 100, quantity: 420, description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis eu lobortis dui. Quisque ac velit aliquet, consequat dui non, fringilla enim. Nunc mattis lacus quis erat pulvinar posuere. Sed id tellus condimentum, volutpat nibh non, dapibus est. Pellentesque tristique tincidunt purus ut tincidunt. Curabitur vehicula, arcu in consectetur tempus, purus dolor mattis arcu, vitae mollis turpis odio ac dui. Sed pellentesque at enim vitae facilisis. Curabitur molestie faucibus egestas. Sed non lectus lobortis, commodo erat sed, ullamcorper orci. Aenean ullamcorper ultricies est non dictum. Donec pulvinar vestibulum nunc nec condimentum.' }),
+    createProduct({ name: 'bar', price: 200, quantity: 69, description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis eu lobortis dui. Quisque ac velit aliquet, consequat dui non, fringilla enim. Nunc mattis lacus quis erat pulvinar posuere. Sed id tellus condimentum, volutpat nibh non, dapibus est. Pellentesque tristique tincidunt purus ut tincidunt. Curabitur vehicula, arcu in consectetur tempus, purus dolor mattis arcu, vitae mollis turpis odio ac dui. Sed pellentesque at enim vitae facilisis. Curabitur molestie faucibus egestas. Sed non lectus lobortis, commodo erat sed, ullamcorper orci. Aenean ullamcorper ultricies est non dictum. Donec pulvinar vestibulum nunc nec condimentum.' }),
+    createProduct({ name: 'bazz', price: 150, quantity: 420, description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis eu lobortis dui. Quisque ac velit aliquet, consequat dui non, fringilla enim. Nunc mattis lacus quis erat pulvinar posuere. Sed id tellus condimentum, volutpat nibh non, dapibus est. Pellentesque tristique tincidunt purus ut tincidunt. Curabitur vehicula, arcu in consectetur tempus, purus dolor mattis arcu, vitae mollis turpis odio ac dui. Sed pellentesque at enim vitae facilisis. Curabitur molestie faucibus egestas. Sed non lectus lobortis, commodo erat sed, ullamcorper orci. Aenean ullamcorper ultricies est non dictum. Donec pulvinar vestibulum nunc nec condimentum.' }),
+    createProduct({ name: 'quq', price: 375, quantity: 69, description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis eu lobortis dui. Quisque ac velit aliquet, consequat dui non, fringilla enim. Nunc mattis lacus quis erat pulvinar posuere. Sed id tellus condimentum, volutpat nibh non, dapibus est. Pellentesque tristique tincidunt purus ut tincidunt. Curabitur vehicula, arcu in consectetur tempus, purus dolor mattis arcu, vitae mollis turpis odio ac dui. Sed pellentesque at enim vitae facilisis. Curabitur molestie faucibus egestas. Sed non lectus lobortis, commodo erat sed, ullamcorper orci. Aenean ullamcorper ultricies est non dictum. Donec pulvinar vestibulum nunc nec condimentum.' }),
   ]);
   let orders = await fetchOrders();
   let cart = orders.find(order => order.is_cart);
@@ -167,5 +171,6 @@ module.exports = {
   deleteLineItem,
   updateOrder,
   seed,
+  createProduct,
   client
 };

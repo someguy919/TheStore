@@ -5,6 +5,8 @@ import { Link, HashRouter, Routes, Route } from 'react-router-dom';
 import Products from './Products';
 import Orders from './Orders';
 import Cart from './Cart';
+import AddProductForm from './addProduct.js'; 
+
 
 const App = ()=> {
   const [products, setProducts] = useState([]);
@@ -77,6 +79,15 @@ const App = ()=> {
     return acc += item.quantity;
   }, 0);
 
+  const addProduct = async (newProduct) => {
+    try {
+      const response = await axios.post('/api/products', newProduct);
+      setProducts([...products, response.data]);
+    } catch (error) {
+      console.error('Error adding product:', error);
+    }
+  };
+
   return (
     <div>
       <nav>
@@ -91,6 +102,7 @@ const App = ()=> {
           createLineItem = { createLineItem }
           updateLineItem = { updateLineItem }
         />
+        <AddProductForm onProductAdded={addProduct} />
         <Orders
           orders = { orders }
           products = { products }
