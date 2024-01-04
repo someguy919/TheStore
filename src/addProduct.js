@@ -14,20 +14,17 @@ const AddProductForm = ({ onProductAdded, setProducts }) => {
       const formattedPrice = Number(price);
       const formattedQuantity = Number(quantity);
 
-      const response = await fetch('/api/products', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          name, 
-          description, 
-          price: formattedPrice, 
-          quantity: formattedQuantity 
-        }),
-      });
+      const newProduct = {
+        name,
+        description,
+        price: formattedPrice,
+        quantity: formattedQuantity,
+      };
 
-      if (response.ok) {
+      const response = await axios.post('/api/products', newProduct);
+
+      if (response.status === 201) {
+        // Product was successfully added
         onProductAdded();
         setName('');
         setDescription('');
@@ -36,7 +33,7 @@ const AddProductForm = ({ onProductAdded, setProducts }) => {
 
         // Update the products list after a successful request
         const productsResponse = await axios.get('/api/products');
-        setProducts(productsResponse.data);
+        setProducts(productsResponse.data); // Update the products list
       } else {
         // Handle errors here, e.g., display an error message to the user
         console.error('Error adding product:', response.statusText);
