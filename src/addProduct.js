@@ -10,32 +10,32 @@ const AddProductForm = ({ onProductAdded, setProducts }) => {
   const handleSubmit = async (event) => {
     event.preventDefault();
     try {
-      // Make sure to convert price and quantity to numbers if they are not already
-      const formattedPrice = Number(price);
+    
+      const formattedPrice = parseFloat(price) * 100;
       const formattedQuantity = Number(quantity);
 
       const newProduct = {
         name,
         description,
-        price: formattedPrice,
+        price: formattedPrice, 
         quantity: formattedQuantity,
       };
 
       const response = await axios.post('/api/products', newProduct);
 
       if (response.status === 201) {
-        // Product was successfully added
+    
         onProductAdded();
         setName('');
         setDescription('');
         setPrice('');
         setQuantity('');
 
-        // Update the products list after a successful request
+       
         const productsResponse = await axios.get('/api/products');
-        setProducts(productsResponse.data); // Update the products list
+        setProducts(productsResponse.data); 
       } else {
-        // Handle errors here, e.g., display an error message to the user
+       
         console.error('Error adding product:', response.statusText);
       }
     } catch (error) {
@@ -62,7 +62,7 @@ const AddProductForm = ({ onProductAdded, setProducts }) => {
         type="number"
         value={price}
         onChange={(e) => setPrice(e.target.value)}
-        placeholder="Price"
+        placeholder="Price (in dollars)"
         required
       />
       <input
